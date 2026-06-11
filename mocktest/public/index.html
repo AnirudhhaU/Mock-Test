@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>MockTest Pro — Competitive Exam Preparation Platform</title>
+    <meta name="description" content="Ace your competitive exams with timed mock tests, instant results, performance analytics and leaderboards."/>
+    <link rel="stylesheet" href="css/style.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="navbar-inner">
+        <a href="index.html" class="navbar-brand">
+            <div class="brand-logo"><i class="bi bi-mortarboard-fill"></i></div>
+            MockTest<span style="color:var(--accent-light)">Pro</span>
+        </a>
+        <div class="navbar-nav">
+            <a href="index.html" class="nav-link active">Home</a>
+            <a href="dashboard.html" class="nav-link">Exams</a>
+            <a href="#features" class="nav-link">Features</a>
+        </div>
+        <div class="navbar-actions" id="navActions">
+            <a href="login.html" class="btn btn-ghost btn-sm">Login</a>
+            <a href="login.html#register" class="btn btn-primary btn-sm">Get Started</a>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<div class="page page-enter">
+<section class="hero container">
+    <div class="hero-badge"><i class="bi bi-lightning-charge-fill"></i> Trusted by 10,000+ aspirants</div>
+    <h1 class="hero-title reveal"><span class="text-gradient">Crack Your Exams</span><br/>With Confidence</h1>
+    <p class="hero-sub reveal" style="transition-delay:0.2s">Full-length timed mock tests, instant score analysis, and detailed explanations — everything you need to succeed in competitive exams.</p>
+    <div class="hero-actions reveal" style="transition-delay:0.4s">
+        <a href="login.html#register" class="btn btn-primary btn-lg shine" id="heroGetStarted">
+            <i class="bi bi-rocket-takeoff-fill"></i> Start Practicing Free
+        </a>
+        <a href="#categories" class="btn btn-secondary btn-lg transform-hover">
+            <i class="bi bi-grid-fill"></i> Browse Tests
+        </a>
+    </div>
+    <div class="hero-stats reveal-stagger" style="transition-delay:0.6s">
+        <div class="hero-stat">
+            <div class="hero-stat-num"><span data-count="50">0</span>+</div>
+            <div class="hero-stat-label">Mock Tests</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-num" data-count="500">0</div>
+            <div class="hero-stat-label">Questions</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-num" data-count="6">0</div>
+            <div class="hero-stat-label">Subjects</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-num">Free</div>
+            <div class="hero-stat-label">Always</div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Everything You Need to Succeed</h2>
+            <p class="section-sub">A complete exam preparation ecosystem built for serious aspirants</p>
+        </div>
+        <div class="reveal-stagger" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
+            <div class="card glow-card" style="border-top:3px solid var(--accent)">
+                <div class="stat-icon" style="background:rgba(99,102,241,0.15);color:var(--accent-light);margin-bottom:12px"><i class="bi bi-clock-fill"></i></div>
+                <div style="font-weight:700;font-size:1.05rem;margin-bottom:8px">Timed Mock Tests</div>
+                <div class="text-muted text-sm">Real exam conditions with countdown timers and auto-submit on time expiry.</div>
+            </div>
+            <div class="card glow-card" style="border-top:3px solid var(--green)">
+                <div class="stat-icon" style="background:rgba(16,185,129,0.15);color:var(--green);margin-bottom:12px"><i class="bi bi-graph-up-arrow"></i></div>
+                <div style="font-weight:700;font-size:1.05rem;margin-bottom:8px">Instant Analytics</div>
+                <div class="text-muted text-sm">Score breakdown, correct/wrong count, time taken, and percentage instantly after submission.</div>
+            </div>
+            <div class="card glow-card" style="border-top:3px solid var(--yellow)">
+                <div class="stat-icon" style="background:rgba(245,158,11,0.15);color:var(--yellow);margin-bottom:12px"><i class="bi bi-lightbulb-fill"></i></div>
+                <div style="font-weight:700;font-size:1.05rem;margin-bottom:8px">Detailed Explanations</div>
+                <div class="text-muted text-sm">Every question comes with a full explanation so you understand where you went wrong.</div>
+            </div>
+            <div class="card glow-card" style="border-top:3px solid var(--cyan)">
+                <div class="stat-icon" style="background:rgba(6,182,212,0.15);color:var(--cyan);margin-bottom:12px"><i class="bi bi-trophy-fill"></i></div>
+                <div style="font-weight:700;font-size:1.05rem;margin-bottom:8px">Leaderboards</div>
+                <div class="text-muted text-sm">Compete with other students and see where you rank on every exam's leaderboard.</div>
+            </div>
+            <div class="card glow-card" style="border-top:3px solid var(--purple)">
+                <div class="stat-icon" style="background:rgba(139,92,246,0.15);color:var(--purple);margin-bottom:12px"><i class="bi bi-dash-circle-fill"></i></div>
+                <div style="font-weight:700;font-size:1.05rem;margin-bottom:8px">Negative Marking</div>
+                <div class="text-muted text-sm">Simulates real exam conditions with configurable negative marking per wrong answer.</div>
+            </div>
+            <div class="card glow-card" style="border-top:3px solid var(--pink)">
+                <div class="stat-icon" style="background:rgba(236,72,153,0.15);color:var(--pink);margin-bottom:12px"><i class="bi bi-grid-fill"></i></div>
+                <div style="font-weight:700;font-size:1.05rem;margin-bottom:8px">Question Navigator</div>
+                <div class="text-muted text-sm">Visual question palette lets you jump between questions and track answered/skipped status.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="section" id="categories" style="padding-top:0">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Explore by Category</h2>
+            <p class="section-sub">Pick your subject and start practising right away</p>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px" id="categoryGrid" class="reveal-stagger">
+            <div class="loader"></div>
+        </div>
+    </div>
+</section>
+
+<!-- QUICK JOIN SECTION -->
+<section class="section" id="quickJoin" style="background: rgba(15,16,36,0.4);">
+    <div class="container" style="max-width: 600px;">
+        <div class="card-glass" style="padding: 40px;">
+            <div style="text-align:center; margin-bottom: 28px;">
+                <h2 style="font-family:var(--font-display); font-size:1.8rem; font-weight:800; margin-bottom:8px;">Start Your Journey</h2>
+                <p class="text-muted text-sm">Sign in or create an account to start practicing</p>
+            </div>
+            
+            <div class="tabs mb-6" style="background: var(--bg-secondary); padding: 5px;">
+                <button class="tab-btn active" id="homeLoginTab" onclick="switchHomeAuth('login')">Login</button>
+                <button class="tab-btn" id="homeRegTab" onclick="switchHomeAuth('reg')">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="homeLoginForm" onsubmit="handleHomeLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="hlEmail" class="form-control" placeholder="you@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="hlPassword" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-full mt-4" id="hlBtn">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign In
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="homeRegForm" class="hidden" onsubmit="handleHomeReg(event)">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="hrName" class="form-control" placeholder="Name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="hrEmail" class="form-control" placeholder="you@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="hrPassword" class="form-control" placeholder="Min 6 characters" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary w-full mt-4" id="hrBtn">
+                    <i class="bi bi-person-plus-fill"></i> Create Account
+                </button>
+            </form>
+            
+            <div style="text-align:center; margin-top: 24px;">
+                <p class="text-xs text-muted">Admin? <a href="login.html" class="text-accent">Login here</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="section">
+    <div class="container">
+        <div style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.1));border:1px solid rgba(99,102,241,0.3);border-radius:var(--radius-xl);padding:56px 40px;text-align:center">
+            <h2 style="font-family:var(--font-display);font-size:2rem;font-weight:800;margin-bottom:16px">Ready to ace your exams?</h2>
+            <p style="color:var(--text-secondary);max-width:480px;margin:0 auto 32px;line-height:1.7">Join thousands of students preparing smarter with MockTest Pro. Free forever, no credit card needed.</p>
+            <a href="#quickJoin" class="btn btn-primary btn-lg"><i class="bi bi-person-plus-fill"></i> Start Practicing Now</a>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div style="margin-bottom:8px">
+            <strong style="color:var(--text-primary)">MockTest<span style="color:var(--accent-light)">Pro</span></strong> — CSE 2212 DBS Lab Mini Project
+        </div>
+        Built with Node.js · Express · MySQL | Team: Anirudhha U, Ashwin Reddy, Agrim Majmudar
+    </div>
+</footer>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/app.js"></script>
+<script>
+const API = '';
+// Update nav if logged in
+const user = JSON.parse(localStorage.getItem('mt_user') || 'null');
+if (user) {
+    document.getElementById('navActions').innerHTML = `
+        <span class="text-sm text-muted">Hi, ${user.name.split(' ')[0]}</span>
+        <a href="dashboard.html" class="btn btn-primary btn-sm"><i class="bi bi-grid-fill"></i> Dashboard</a>`;
+    document.getElementById('heroGetStarted').href = 'dashboard.html';
+    document.getElementById('heroGetStarted').innerHTML = '<i class="bi bi-grid-fill"></i> Go to Dashboard';
+    document.getElementById('quickJoin').classList.add('hidden');
+    
+    // Silently verify if the secure cookie is actually valid
+    fetch('/api/auth/profile', { credentials: 'same-origin' })
+        .then(res => {
+            if (!res.ok) {
+                localStorage.removeItem('mt_user');
+                window.location.reload();
+            }
+        }).catch(err => console.error(err));
+}
+
+// Load categories
+fetch('/api/exams/categories')
+    .then(r => r.json())
+    .then(cats => {
+        const colors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
+        document.getElementById('categoryGrid').innerHTML = cats.map((c,i) => `
+            <a href="dashboard.html?cat=${c.id}" class="card" style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;text-decoration:none;border-top:3px solid ${c.color}">
+                <div style="width:52px;height:52px;border-radius:14px;background:${c.color}22;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:${c.color}">
+                    <i class="bi ${c.icon}"></i>
+                </div>
+                <div style="font-weight:700;font-size:0.95rem">${c.name}</div>
+                <div class="text-xs text-muted">${c.exam_count} test${c.exam_count !== 1 ? 's' : ''}</div>
+            </a>`).join('');
+    })
+    .catch(() => {
+        document.getElementById('categoryGrid').innerHTML = '<p class="text-muted text-sm">Could not load categories. Make sure the server is running.</p>';
+    });
+
+function switchHomeAuth(tab) {
+    document.getElementById('homeLoginForm').classList.toggle('hidden', tab !== 'login');
+    document.getElementById('homeRegForm').classList.toggle('hidden', tab !== 'reg');
+    document.getElementById('homeLoginTab').classList.toggle('active', tab === 'login');
+    document.getElementById('homeRegTab').classList.toggle('active', tab === 'reg');
+}
+
+async function handleHomeLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('hlBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Logging in...';
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ email: document.getElementById('hlEmail').value, password: document.getElementById('hlPassword').value })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        localStorage.setItem('mt_user', JSON.stringify(data.user));
+        showToast('Welcome back, ' + data.user.name.split(' ')[0] + '!', 'success');
+        document.getElementById('homeLoginForm').reset();
+        setTimeout(() => window.location.href = data.user.role === 'admin' ? 'admin.html' : 'dashboard.html', 600);
+    } catch (err) {
+        showToast(err.message || 'Login failed', 'error');
+        btn.disabled = false; btn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Sign In';
+    }
+}
+
+async function handleHomeReg(e) {
+    e.preventDefault();
+    const btn = document.getElementById('hrBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Creating account...';
+    try {
+        const res = await fetch('/api/auth/register', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ name: document.getElementById('hrName').value, email: document.getElementById('hrEmail').value, password: document.getElementById('hrPassword').value })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        localStorage.setItem('mt_user', JSON.stringify(data.user));
+        showToast('Account created! Welcome, ' + data.user.name.split(' ')[0] + '!', 'success');
+        document.getElementById('homeRegForm').reset();
+        setTimeout(() => window.location.href = 'dashboard.html', 600);
+    } catch (err) {
+        showToast(err.message || 'Registration failed', 'error');
+        btn.disabled = false; btn.innerHTML = '<i class="bi bi-person-plus-fill"></i> Create Account';
+    }
+}
+</script>
+</body>
+</html>

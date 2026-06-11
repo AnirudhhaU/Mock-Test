@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Exam — MockTest Pro</title>
+    <link rel="stylesheet" href="css/style.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<!-- QUIZ NAVBAR -->
+<nav class="navbar">
+    <div class="navbar-inner">
+        <div class="navbar-brand">
+            <div class="brand-logo"><i class="bi bi-mortarboard-fill"></i></div>
+            <span id="examTitleNav">Loading Exam...</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+            <div class="quiz-timer" id="timerDisplay">
+                <i class="bi bi-clock"></i> <span id="timerText">00:00</span>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="confirmSubmit()" id="submitBtn">
+                <i class="bi bi-check2-all"></i> Submit
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="page page-enter" id="quizPage" style="display:none">
+<div class="quiz-layout">
+    <!-- MAIN QUESTION AREA -->
+    <div>
+        <!-- Progress bar -->
+        <div style="background:var(--border);border-radius:99px;height:4px;margin-bottom:20px;overflow:hidden">
+            <div id="progressBar" style="height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));width:0%;transition:width 0.4s ease;border-radius:99px"></div>
+        </div>
+
+        <div class="question-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <div class="question-num" id="questionNum">Question 1 of 20</div>
+                <span class="badge" id="diffBadge"></span>
+            </div>
+            <div class="question-text" id="questionText">Loading question...</div>
+            <div class="options-list" id="optionsList"></div>
+        </div>
+
+        <div class="quiz-nav">
+            <button class="btn btn-secondary" id="prevBtn" onclick="navigate(-1)" disabled>
+                <i class="bi bi-arrow-left"></i> Previous
+            </button>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-ghost btn-sm" onclick="toggleFlag()" id="flagBtn">
+                    <i class="bi bi-flag"></i> Flag
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="clearAnswer()" id="clearBtn">
+                    <i class="bi bi-x-circle"></i> Clear
+                </button>
+            </div>
+            <button class="btn btn-primary" id="nextBtn" onclick="navigate(1)">
+                Next <i class="bi bi-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- SIDEBAR PALETTE -->
+    <div class="question-palette">
+        <div class="palette-title"><i class="bi bi-grid-3x3-gap-fill text-accent"></i> Question Navigator</div>
+        <div class="palette-grid" id="paletteGrid"></div>
+        <div class="palette-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Answered</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--bg-secondary);border:1px solid var(--border)"></div>Not Answered</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--text-primary)"></div>Current</div>
+            <div class="legend-item"><div class="legend-dot round" style="background:var(--yellow)"></div>Flagged</div>
+        </div>
+        <div class="divider"></div>
+        <div id="paletteStats" style="font-size:0.8rem;color:var(--text-secondary);display:flex;flex-direction:column;gap:4px"></div>
+        <button class="btn btn-danger w-full mt-4" onclick="confirmSubmit()" style="margin-top:12px">
+            <i class="bi bi-stop-fill"></i> End & Submit
+        </button>
+    </div>
+</div>
+</div>
+
+<!-- MOBILE PALETTE DRAWER TOGGLE -->
+<div class="palette-overlay" id="paletteOverlay" onclick="toggleDrawer()"></div>
+<button class="palette-toggle-btn hidden" id="paletteToggleBtn" onclick="toggleDrawer()">
+    <i class="bi bi-grid-3x3-gap-fill"></i>
+</button>
+
+<!-- LOADING STATE -->
+<div id="loadingPage" style="display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:16px;position:relative;z-index:1">
+    <div class="loader"></div>
+    <p class="text-muted">Loading exam...</p>
+</div>
+
+<!-- SUBMIT CONFIRM MODAL -->
+<div class="modal-overlay" id="submitModal">
+    <div class="modal" style="max-width:420px">
+        <div class="modal-header">
+            <div class="modal-title">Submit Exam?</div>
+            <button class="modal-close" onclick="document.getElementById('submitModal').classList.remove('open')">✕</button>
+        </div>
+        <div id="submitModalStats" style="margin-bottom:20px"></div>
+        <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius-sm);padding:12px 16px;font-size:0.83rem;color:var(--yellow);margin-bottom:20px">
+            <i class="bi bi-exclamation-triangle-fill"></i> Once submitted, you cannot change your answers.
+        </div>
+        <div style="display:flex;gap:12px">
+            <button class="btn btn-secondary" style="flex:1" onclick="document.getElementById('submitModal').classList.remove('open')">Go Back</button>
+            <button class="btn btn-primary" style="flex:2" onclick="submitExam()" id="finalSubmitBtn">
+                <i class="bi bi-check2-all"></i> Submit Exam
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="js/app.js"></script>
+<script>
+requireAuth();
+
+let attempt = null, questions = [], currentIdx = 0;
+let answers = {}, flagged = {}, startTime = Date.now(), timerInterval = null;
+
+// Load from sessionStorage
+const raw = sessionStorage.getItem('mt_attempt');
+if (!raw) { window.location.href = 'dashboard.html'; }
+else {
+    attempt = JSON.parse(raw);
+    questions = attempt.questions;
+    document.getElementById('examTitleNav').textContent = attempt.exam.title;
+    document.getElementById('loadingPage').style.display = 'none';
+    document.getElementById('quizPage').style.display = '';
+    buildPalette();
+    renderQuestion(0);
+    startTimer(attempt.exam.duration_minutes * 60);
+}
+
+function startTimer(seconds) {
+    let remaining = seconds;
+    function tick() {
+        const m = Math.floor(remaining / 60).toString().padStart(2,'0');
+        const s = (remaining % 60).toString().padStart(2,'0');
+        document.getElementById('timerText').textContent = `${m}:${s}`;
+        if (remaining <= 300) {
+            document.getElementById('timerDisplay').classList.add('danger');
+        }
+        if (remaining <= 0) {
+            clearInterval(timerInterval);
+            showToast('Time is up! Auto-submitting...', 'error');
+            setTimeout(submitExam, 1200);
+        }
+        remaining--;
+    }
+    tick();
+    timerInterval = setInterval(tick, 1000);
+}
+
+function buildPalette() {
+    const grid = document.getElementById('paletteGrid');
+    grid.innerHTML = questions.map((q,i) => `
+        <button class="palette-btn ${i===0?'current':''}" id="pb${i}" onclick="renderQuestion(${i})">${i+1}</button>`).join('');
+}
+
+function renderQuestion(idx) {
+    currentIdx = idx;
+    const q = questions[idx];
+    const pct = ((idx+1) / questions.length * 100).toFixed(0);
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('questionNum').textContent = `Question ${idx+1} of ${questions.length}`;
+
+    const diffMap = { easy:'badge-green diff-easy', medium:'badge-yellow diff-medium', hard:'badge-red diff-hard' };
+    const diffLabel = { easy:'Easy', medium:'Medium', hard:'Hard' };
+    const db = document.getElementById('diffBadge');
+    db.className = 'badge ' + (diffMap[q.difficulty] || 'badge-accent');
+    db.textContent = diffLabel[q.difficulty] || q.difficulty;
+
+    document.getElementById('questionText').textContent = q.question_text;
+
+    const opts = ['A','B','C','D'];
+    const optTexts = [q.option_a, q.option_b, q.option_c, q.option_d];
+    document.getElementById('optionsList').innerHTML = opts.map((o,i) => `
+        <div class="option ${answers[q.id]===o?'selected':''}" id="opt${o}" onclick="selectOption('${o}')">
+            <div class="option-circle">${o}</div>
+            <div class="option-text">${optTexts[i]}</div>
+        </div>`).join('');
+
+    // Palette highlight
+    document.querySelectorAll('.palette-btn').forEach((btn,i) => {
+        btn.classList.remove('current','answered','flagged');
+        if (i === idx) btn.classList.add('current');
+        else if (answers[questions[i].id]) btn.classList.add('answered');
+        
+        if (flagged[questions[i].id]) btn.classList.add('flagged');
+    });
+
+    document.getElementById('prevBtn').disabled = idx === 0;
+    document.getElementById('nextBtn').textContent = idx === questions.length-1 ? 'Review' : 'Next ';
+    document.getElementById('nextBtn').innerHTML = idx === questions.length-1 ? 'Review <i class="bi bi-grid-fill"></i>' : 'Next <i class="bi bi-arrow-right"></i>';
+
+    updateStats();
+}
+
+function selectOption(opt) {
+    const q = questions[currentIdx];
+    answers[q.id] = opt;
+    document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
+    document.getElementById(`opt${opt}`).classList.add('selected');
+    document.getElementById(`pb${currentIdx}`).classList.add('answered');
+    document.getElementById(`pb${currentIdx}`).classList.remove('current');
+    updateStats();
+}
+
+function clearAnswer() {
+    const q = questions[currentIdx];
+    delete answers[q.id];
+    document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
+    document.getElementById(`pb${currentIdx}`).classList.remove('answered');
+    if (!flagged[q.id]) document.getElementById(`pb${currentIdx}`).classList.add('current');
+    updateStats();
+}
+
+function toggleFlag() {
+    const q = questions[currentIdx];
+    const btn = document.getElementById(`pb${currentIdx}`);
+    if (flagged[q.id]) {
+        delete flagged[q.id];
+        btn.classList.remove('flagged');
+        document.getElementById('flagBtn').innerHTML = '<i class="bi bi-flag"></i> Flag';
+        document.getElementById('flagBtn').classList.remove('text-yellow');
+    } else {
+        flagged[q.id] = true;
+        btn.classList.add('flagged');
+        document.getElementById('flagBtn').innerHTML = '<i class="bi bi-flag-fill"></i> Flagged';
+        document.getElementById('flagBtn').classList.add('text-yellow');
+    }
+}
+
+function navigate(dir) {
+    const newIdx = currentIdx + dir;
+    if (newIdx >= 0 && newIdx < questions.length) renderQuestion(newIdx);
+    else if (dir === 1 && currentIdx === questions.length-1) confirmSubmit();
+}
+
+function updateStats() {
+    const answered = Object.keys(answers).length;
+    const skipped  = questions.length - answered;
+    document.getElementById('paletteStats').innerHTML = `
+        <div><span class="text-green fw-600">${answered}</span> Answered</div>
+        <div><span class="text-yellow fw-600">${skipped}</span> Not Answered</div>
+        <div><span class="text-muted fw-600">${questions.length}</span> Total</div>`;
+}
+
+function confirmSubmit() {
+    const answered = Object.keys(answers).length;
+    const skipped  = questions.length - answered;
+    document.getElementById('submitModalStats').innerHTML = `
+        <div class="grid-2" style="gap:10px">
+            <div class="stat-card text-center"><div class="stat-value text-green">${answered}</div><div class="stat-label">Answered</div></div>
+            <div class="stat-card text-center"><div class="stat-value text-yellow">${skipped}</div><div class="stat-label">Skipped</div></div>
+        </div>`;
+    document.getElementById('submitModal').classList.add('open');
+}
+
+async function submitExam() {
+    clearInterval(timerInterval);
+    const btn = document.getElementById('finalSubmitBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting...';
+    const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+    try {
+        const result = await authFetch(`/api/exams/attempt/${attempt.attempt_id}/submit`, {
+            method: 'POST',
+            body: JSON.stringify({ answers, time_taken_sec: timeTaken })
+        });
+        sessionStorage.setItem('mt_result', JSON.stringify(result));
+        sessionStorage.setItem('mt_attempt_id', attempt.attempt_id);
+        sessionStorage.removeItem('mt_attempt');
+        showToast('Exam submitted! Redirecting...', 'success');
+        setTimeout(() => window.location.href = `results.html?id=${attempt.attempt_id}`, 800);
+    } catch(e) {
+        showToast(e.message || 'Submission failed', 'error');
+        btn.disabled = false; btn.innerHTML = '<i class="bi bi-check2-all"></i> Submit Exam';
+    }
+}
+
+// Prevent accidental navigation
+window.addEventListener('beforeunload', e => {
+    if (questions.length) { e.preventDefault(); e.returnValue = ''; }
+});
+
+function toggleDrawer() {
+    document.querySelector('.question-palette').classList.toggle('open');
+    document.getElementById('paletteOverlay').classList.toggle('open');
+}
+
+// Check flag state when rendering question
+const originalRenderQuestion = renderQuestion;
+renderQuestion = function(idx) {
+    originalRenderQuestion(idx);
+    const q = questions[idx];
+    if (flagged[q.id]) {
+        document.getElementById('flagBtn').innerHTML = '<i class="bi bi-flag-fill"></i> Flagged';
+        document.getElementById('flagBtn').classList.add('text-yellow');
+    } else {
+        document.getElementById('flagBtn').innerHTML = '<i class="bi bi-flag"></i> Flag';
+        document.getElementById('flagBtn').classList.remove('text-yellow');
+    }
+    // Close drawer if open on mobile
+    document.querySelector('.question-palette').classList.remove('open');
+    document.getElementById('paletteOverlay').classList.remove('open');
+};
+</script>
+</body>
+</html>

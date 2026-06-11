@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dashboard — MockTest Pro</title>
+    <link rel="stylesheet" href="css/style.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<nav class="navbar">
+    <div class="navbar-inner">
+        <a href="index.html" class="navbar-brand">
+            <div class="brand-logo"><i class="bi bi-mortarboard-fill"></i></div>
+            MockTest<span style="color:var(--accent-light)">Pro</span>
+        </a>
+        <div class="navbar-nav">
+            <a href="dashboard.html" class="nav-link active">Exams</a>
+            <a href="dashboard.html#history" class="nav-link">My Results</a>
+        </div>
+        <div class="navbar-actions">
+            <span class="text-sm text-muted" id="navName"></span>
+            <button class="btn btn-ghost btn-sm" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</button>
+        </div>
+    </div>
+</nav>
+
+<div class="page page-enter" style="padding:32px 0 60px">
+<div class="container">
+
+    <!-- WELCOME -->
+    <div style="margin-bottom:28px">
+        <h1 style="font-family:var(--font-display);font-size:1.8rem;font-weight:800" id="welcomeMsg">Welcome back 👋</h1>
+        <p class="text-muted text-sm mt-1">Pick a test and start practising</p>
+    </div>
+
+    <!-- NOTIFICATIONS & HIGHLIGHTS -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:24px; margin-bottom:40px;">
+        
+        <!-- PROCEDURE DRIVEN STATS -->
+        <div id="highlights-card" class="glow-card reveal" style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; display:flex; flex-direction:column; justify-content:center;">
+             <h3 style="font-family:var(--font-display); font-size:1.1rem; margin-bottom:16px; color:var(--accent-light)"><i class="bi bi-cpu"></i> <span class="text-gradient">Performance Summary</span></h3>
+             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:16px;">
+                <div class="stat-card" style="background:rgba(255,255,255,0.03); text-align:center">
+                    <div class="stat-value" data-count="0" id="procTotal">0</div>
+                    <div class="stat-label">Total Exams</div>
+                </div>
+                <div class="stat-card" style="background:rgba(255,255,255,0.03); text-align:center">
+                    <div class="stat-value text-green" id="procAvg">0%</div>
+                    <div class="stat-label">Average Score</div>
+                </div>
+                <div class="stat-card" style="background:rgba(255,255,255,0.03); text-align:center">
+                    <div class="stat-value text-yellow" id="procBest">0%</div>
+                    <div class="stat-label">Best Score</div>
+                </div>
+             </div>
+        </div>
+    </div>
+
+    <!-- CATEGORY MASTERY RADAR -->
+    <div style="margin-bottom:40px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:24px;">
+        <h3 style="font-family:var(--font-display); font-size:1.1rem; margin-bottom:16px"><i class="bi bi-radar"></i> Category Skill Mastery</h3>
+        <div style="height: 300px; position:relative; width:100%; max-width:500px; margin:0 auto;">
+            <canvas id="masteryChart"></canvas>
+        </div>
+    </div>
+
+    <!-- CATEGORY FILTER -->
+    <div class="category-chips" id="catChips">
+        <div class="category-chip active" data-cat="" onclick="filterCat(this,'')">
+            <i class="bi bi-grid-fill"></i> All Tests
+        </div>
+    </div>
+
+    <!-- EXAM GRID -->
+    <div class="exam-grid reveal-stagger" id="examGrid">
+        <div class="loader"></div>
+    </div>
+
+    <!-- HISTORY SECTION -->
+    <div style="margin-top:56px" id="history">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+            <h2 style="font-family:var(--font-display);font-size:1.3rem;font-weight:700">My Test History</h2>
+        </div>
+        <div id="historyList"><div class="loader"></div></div>
+    </div>
+</div>
+</div>
+
+<!-- EXAM DETAIL MODAL -->
+<div class="modal-overlay" id="examModal">
+    <div class="modal" style="max-width:480px">
+        <div class="modal-header">
+            <div class="modal-title" id="modalTitle">Exam Details</div>
+            <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="js/app.js"></script>
+<script>
+requireAuth();
+const user = JSON.parse(localStorage.getItem('mt_user') || '{}');
+document.getElementById('navName').textContent = 'Hi, ' + (user.name || '').split(' ')[0];
+document.getElementById('welcomeMsg').textContent = 'Welcome back, ' + (user.name||'').split(' ')[0] + ' 👋';
+
+let allExams = [];
+
+// Load summary stats (Top Cards)
+authFetch('/api/exams/stats').then(stats => {
+    const avgEl = document.getElementById('statAvg');
+    if(avgEl) animateValue(avgEl, 0, Math.round(stats.avgScore || 0), 1500);
+}).catch(console.error);
+
+// [PROCEDURE CALL] Load Performance Highlights via sp_GetStudentReport
+authFetch('/api/exams/report/me').then(report => {
+    if(!report) return;
+    const totalEl = document.getElementById('procTotal');
+    const avgEl = document.getElementById('procAvg');
+    const bestEl = document.getElementById('procBest');
+    
+    if(totalEl) animateValue(totalEl, 0, report.total_tests || 0, 1500);
+    if(avgEl) animateValue(avgEl, 0, Math.round(report.avg_percentage || 0), 1500);
+    if(bestEl) bestEl.innerText = (report.best_percentage || 0) + '%';
+}).catch(console.error);
+
+
+
+// Load Mastery
+authFetch('/api/exams/mastery').then(data => {
+    if(!data || !data.length) return;
+    const ctx = document.getElementById('masteryChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: data.map(d => d.category_name),
+            datasets: [{
+                label: 'Average Mastery %',
+                data: data.map(d => parseFloat(d.avg_mastery)),
+                backgroundColor: 'rgba(99, 102, 241, 0.4)',
+                borderColor: 'rgba(99, 102, 241, 1)',
+                pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    min: 0,
+                    max: 100,
+                    angleLines: { color: 'rgba(255,255,255,0.1)' },
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    pointLabels: { 
+                        color: '#94a3b8', 
+                        font: { size: 11, family: "'Inter', sans-serif" } 
+                    },
+                    ticks: { display: false, stepSize: 20 }
+                }
+            },
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `Mastery: ${ctx.raw.toFixed(1)}%`
+                    }
+                }
+            }
+        }
+    });
+}).catch(console.error);
+
+// Load categories
+authFetch('/api/exams/categories').then(cats => {
+    cats.forEach(c => {
+        const chip = document.createElement('div');
+        chip.className = 'category-chip';
+        chip.dataset.cat = c.id;
+        chip.innerHTML = `<i class="bi ${c.icon}"></i> ${c.name}`;
+        chip.onclick = () => filterCat(chip, c.id);
+        document.getElementById('catChips').appendChild(chip);
+    });
+    // Check URL param
+    const urlCat = new URLSearchParams(location.search).get('cat');
+    if (urlCat) {
+        const chip = document.querySelector(`.category-chip[data-cat="${urlCat}"]`);
+        if (chip) filterCat(chip, urlCat);
+    }
+});
+
+// Load exams
+fetch('/api/exams').then(r => r.json()).then(exams => {
+    allExams = exams;
+    renderExams(exams);
+});
+
+function renderExams(exams) {
+    if (!exams.length) {
+        document.getElementById('examGrid').innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+            <div class="empty-state-icon"><i class="bi bi-journal-x"></i></div>
+            <div class="empty-state-title">No exams found</div>
+            <div class="text-muted text-sm">Try a different category</div>
+        </div>`;
+        return;
+    }
+    document.getElementById('examGrid').innerHTML = exams.map(e => `
+        <div class="exam-card" onclick="openExamModal(${e.id})" style="--card-color:${e.color}">
+            <div class="exam-card-header">
+                <div class="exam-icon" style="background:${e.color}22;color:${e.color}"><i class="bi ${e.icon}"></i></div>
+                <span class="badge badge-accent">${e.category_name}</span>
+            </div>
+            <div>
+                <div class="exam-title">${e.title}</div>
+                <div class="exam-desc mt-1">${e.description || ''}</div>
+            </div>
+            <div class="exam-meta">
+                <span class="exam-meta-item"><i class="bi bi-clock"></i> ${e.duration_minutes} min</span>
+                <span class="exam-meta-item"><i class="bi bi-question-circle"></i> ${e.question_count} Qs</span>
+                <span class="exam-meta-item"><i class="bi bi-award"></i> ${e.total_marks} marks</span>
+            </div>
+            <div class="exam-footer">
+                <span class="text-xs text-muted"><i class="bi bi-dash-circle text-red"></i> -${e.negative_marking}/wrong</span>
+                <button class="btn btn-primary btn-sm">Start Test <i class="bi bi-arrow-right"></i></button>
+            </div>
+        </div>`).join('');
+}
+
+function filterCat(chip, catId) {
+    document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const filtered = catId ? allExams.filter(e => e.category_id == catId) : allExams;
+    renderExams(filtered);
+}
+
+async function openExamModal(examId) {
+    document.getElementById('examModal').classList.add('open');
+    document.getElementById('modalBody').innerHTML = '<div class="loader"></div>';
+    try {
+        const exam = await authFetch(`/api/exams/${examId}`);
+        const attLeft = exam.max_attempts - (exam.user_attempts || 0);
+        const canStart = attLeft > 0 && exam.question_count > 0;
+        document.getElementById('modalTitle').textContent = exam.title;
+        document.getElementById('modalBody').innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:16px">
+                <div class="grid-2" style="gap:12px">
+                    <div class="stat-card text-center">
+                        <div class="stat-value">${exam.duration_minutes}</div>
+                        <div class="stat-label">Minutes</div>
+                    </div>
+                    <div class="stat-card text-center">
+                        <div class="stat-value">${exam.question_count}</div>
+                        <div class="stat-label">Questions</div>
+                    </div>
+                    <div class="stat-card text-center">
+                        <div class="stat-value">${exam.total_marks}</div>
+                        <div class="stat-label">Total Marks</div>
+                    </div>
+                    <div class="stat-card text-center">
+                        <div class="stat-value">${exam.pass_marks}</div>
+                        <div class="stat-label">Pass Marks</div>
+                    </div>
+                </div>
+                <div class="card" style="gap:8px;padding:16px">
+                    <div class="flex gap-2 items-center text-sm"><i class="bi bi-dash-circle text-red"></i> Negative Marking: <strong>${exam.negative_marking}x per wrong answer</strong></div>
+                    <div class="flex gap-2 items-center text-sm"><i class="bi bi-arrow-repeat text-accent"></i> Attempts left: <strong>${attLeft} / ${exam.max_attempts}</strong></div>
+                </div>
+                <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius-sm);padding:12px 16px;font-size:0.83rem;color:var(--yellow)">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Once you start, the timer begins. Make sure you are ready!
+                </div>
+                <div style="display:flex;gap:12px">
+                    <button class="btn btn-secondary" style="flex:1" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" style="flex:2" ${canStart?'':'disabled'} onclick="startExam(${examId})">
+                        ${canStart ? '<i class="bi bi-play-fill"></i> Start Exam' : 'No attempts left'}
+                    </button>
+                </div>
+            </div>`;
+    } catch(e) {
+        document.getElementById('modalBody').innerHTML = `<p class="text-red">Error loading exam.</p>`;
+    }
+}
+
+async function startExam(examId) {
+    const btn = document.querySelector('#examModal .btn-primary');
+    btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Starting...';
+    try {
+        const data = await authFetch(`/api/exams/${examId}/start`, {method:'POST'});
+        sessionStorage.setItem('mt_attempt', JSON.stringify(data));
+        window.location.href = 'exam.html';
+    } catch(e) {
+        showToast(e.message || 'Could not start exam', 'error');
+        btn.disabled = false; btn.innerHTML = '<i class="bi bi-play-fill"></i> Start Exam';
+    }
+}
+
+function closeModal() { document.getElementById('examModal').classList.remove('open'); }
+
+// Load history
+authFetch('/api/exams/history/me')
+    .then(history => {
+        if (!history.length) {
+            document.getElementById('historyList').innerHTML = `<div class="card" style="text-align:center; padding: 48px 24px; display:flex; flex-direction:column; align-items:center; gap: 16px;">
+                <div style="width: 64px; height: 64px; background: rgba(99,102,241,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--accent);">
+                    <i class="bi bi-rocket-takeoff-fill"></i>
+                </div>
+                <div>
+                    <h3 style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Start Your First Exam</h3>
+                    <p class="text-muted text-sm" style="max-width: 320px; line-height: 1.6;">You haven't taken any tests yet. Choose an exam from the tests above to test your knowledge and start tracking your progress!</p>
+                </div>
+                <button class="btn btn-primary mt-2" onclick="window.scrollTo(0, 0)">
+                    <i class="bi bi-arrow-up"></i> Browse Exams
+                </button>
+            </div>`;
+            return;
+        }
+        document.getElementById('historyList').innerHTML = `
+            <div class="table-wrap">
+            <table>
+                <thead><tr>
+                    <th>Exam</th><th>Category</th><th>Score</th><th>Percentage</th><th>Status</th><th>Date</th><th></th>
+                </tr></thead>
+                <tbody>
+                ${history.map(h => `
+                    <tr>
+                        <td style="font-weight:600">${h.exam_title}</td>
+                        <td><span class="badge badge-accent"><i class="bi ${h.icon}"></i> ${h.category_name}</span></td>
+                        <td>${h.score} / ${h.total_marks}</td>
+                        <td>
+                            <span style="font-weight:700;color:${+h.percentage>=60?'var(--green)':+h.percentage>=40?'var(--yellow)':'var(--red)'}">${(+h.percentage).toFixed(1)}%</span>
+                        </td>
+                        <td><span class="badge ${h.percentage>=40?'badge-green':'badge-red'}">${+h.percentage>=40?'Passed':'Failed'}</span></td>
+                        <td class="text-muted text-xs">${new Date(h.submitted_at).toLocaleDateString('en-IN')}</td>
+                        <td><a href="results.html?id=${h.id}" class="btn btn-secondary btn-sm"><i class="bi bi-eye"></i> Review</a></td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+            </div>`;
+    }).catch(() => {
+        document.getElementById('historyList').innerHTML = '<p class="text-muted text-sm">Could not load history.</p>';
+    });
+
+function logout() {
+    sessionStorage.clear();
+    globalLogout();
+}
+</script>
+</body>
+</html>
